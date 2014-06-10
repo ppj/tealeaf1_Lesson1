@@ -35,7 +35,7 @@ def initialize_board
 end
 
 
-def draw_display_board(b)
+def draw_helper_board(b)
   display = []
   b.each_with_index do |e, idx|
     if e == " "
@@ -65,7 +65,7 @@ end
 
 
 def board_full?(b)
-  return empty_positions(b).length == 0
+  empty_positions(b).length == 0
 end
 
 
@@ -89,46 +89,61 @@ def check_winner(b, symbol)
     if symbol == b[pattern[0]-1] and
        symbol == b[pattern[1]-1] and
        symbol == b[pattern[2]-1]
-      puts "Player #{symbol} won. Game Over!"
       return true
     end
   end
   false
-
 end
 
+
+def player_plays(b)
+  valid_user_input = false
+  until valid_user_input
+    draw_helper_board b # helper board for user
+    position = prompt "Select one of empty (numbered) positions above to put an 'X' in"
+    position = position.to_i - 1
+    if b[position] == " "
+      valid_user_input = true
+      b[position] = "X"
+    end
+  end
+  b
+end
+
+
+def computer_plays(b)
+  computer_option = empty_positions(b).sample
+  if computer_option
+    b[computer_option] = "O"
+  end
+end
+
+# main
 board = initialize_board
 
 until board_full?(board)
   system "cls"
   puts
-  valid_user_input = false
-  until valid_user_input
-    draw_display_board board # helper board for user
-    position = prompt "Select one of empty (numbered) positions above to put an 'X' in"
-    position = position.to_i - 1
-    if board[position] == " "
-      valid_user_input = true
-      board[position] = "X"
-    end
-  end
+  player_plays board # pass by reference changes the contents of board
   # stop if player "X" won
   if check_winner(board, "X")
+    puts "You won!"
     draw_board board
+    puts "Game Over!"
     break
   end
 
-  computer_option = empty_positions(board).sample
-  if computer_option
-    board[computer_option] = "O"
-  end
+  computer_plays board
   # stop if player "O" won
   if check_winner(board, "O")
+    puts "Computer won!"
     draw_board board
+    puts "Game Over!"
     break
   end
   if board_full?(board)
-    puts "Game Tied! No winner."
+    puts "It's a tie. No winner."
+    puts "Game Over!"
   end
   draw_board board
 end
