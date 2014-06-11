@@ -1,5 +1,4 @@
 # tic_tac_toe.rb
-require 'pry'
 
 # psuedo code
 # Start with an empty 3x3 board
@@ -11,7 +10,7 @@ require 'pry'
 #   else if board full?
 #     end game
 #   else
-#     generate a random number and let the computer chose an empty square to mark its 'O'
+#     generate a random number and let the computer choose an empty square to mark its 'O'
 #   end
 #   display board
 #   if computer won
