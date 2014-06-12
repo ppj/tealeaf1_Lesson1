@@ -2,9 +2,13 @@
 # Procedural version of BlackJack
 require 'pry'
 
-def prompt_user(prompt_string)
-  print "#{prompt_string} >> "
-  gets.chomp
+def prompt_user(prompt_string, default_response = "y")
+  print "#{prompt_string} (default '#{default_response}')>> "
+  response = gets.chomp
+  if response.empty?
+    response = default_response
+  end
+  response
 end
 
 
@@ -31,28 +35,66 @@ def deal_one_card(cards)
 end
 
 
-def display_cards(cards)
-  cards.each { print "  --------  " }
+def display_cards(cards, dealers = false)
+  if dealers
+    puts "Dealers Cards"
+  else
+    puts "Your Cards"
+  end
+  cards.each { print "  -----  " }
   puts
 
-  2.times do
-    cards.each { print " |        | " }
+  cards.each { print " |     | " }
+  puts
+
+  if dealers
+    cards[0,cards.length-1].each { | card | print " |  %c  | " % card.split[0] }
+    print " |  X  | "
+    puts
+
+    cards[0,cards.length-1].each { | card | print " |  %-2s | " % card.split[1] }
+    print " |  X  | "
+    puts
+
+  else
+    cards.each { | card | print " |  %c  | " % card.split[0] }
+    puts
+
+    cards.each { | card | print " |  %-2s | " % card.split[1] }
     puts
   end
 
-  cards.each { | card | print " |  %-4s  | " % card }
+  cards.each { print " |     | " }
   puts
 
-  2.times do
-    cards.each { print " |        | " }
-    puts
-  end
-
-  cards.each { print "  --------  " }
+  cards.each { print "  -----  " }
+  puts
   puts
 
 end
 
+
+def total(cards)
+  values = cards.map {|card| card.split[1]}
+  total = 0
+  values.each do | value |
+    if Array(2..10).include?(value.to_i)
+      total += value.to_i
+    elsif ["j", "q", "k"].include?(value)
+      total += 10
+    else # account for all aces later
+    end
+  end
+  # deal only with the aces
+  values.count("a").times do
+    if total+11 <= 21
+      total += 11
+    else
+      total += 1
+    end
+  end
+  total
+end
 
 
 # pseudo code
@@ -117,24 +159,35 @@ end
 
 
 # main
-player = prompt_user("Welcome to the BlackJack table.\nPlease enter your name")
+player = prompt_user("Welcome to the BlackJack table.\nPlease enter your name", "Anon")
 new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<anything else>]").downcase[0] == 'y'? true : false
 
 while new_game
   number_of_decks = "gibberish"
   until [1, 2, 4, 6, 8].index(number_of_decks)
-    number_of_decks = prompt_user("Enter the number of decks you would prefer to play with [1, 2, 4, 6, 8]").to_i
+    number_of_decks = prompt_user("Enter the number of decks you would prefer to play with [1, 2, 4, 6, 8]", "1").to_i
   end
 
   card_set = initialize_cards(number_of_decks)
-  # binding.pry
   player_cards = []
   dealer_cards = []
 
+  system "cls"
   2.times { player_cards << deal_one_card(card_set) }
-  display_cards player_cards
+  display_cards(player_cards)
 
-  new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/n]").downcase[0] == 'y'? true : false
+  2.times { dealer_cards << deal_one_card(card_set) }
+  display_cards(dealer_cards, true)
+
+  puts "Player total = %2d" % total(player_cards)
+
+  if total(player_cards) == 21
+
+    new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<any other response>]").downcase[0] == 'y'? true : false
+
+  end
+
+  new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<any other response>]").downcase[0] == 'y'? true : false
 end
 
 
