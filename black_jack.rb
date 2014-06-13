@@ -35,19 +35,16 @@ def deal_one_card(cards)
 end
 
 
-def display_cards(cards, dealers = false)
-  if dealers
-    puts "Dealers Cards"
-  else
-    puts "Your Cards"
-  end
+def display_cards(cards, header = "Your Cards", hide_last = false)
+  puts header
+
   cards.each { print "  -----  " }
   puts
 
   cards.each { print " |     | " }
   puts
 
-  if dealers
+  if hide_last
     cards[0,cards.length-1].each { | card | print " |  %c  | " % card.split[0] }
     print " |  X  | "
     puts
@@ -68,6 +65,9 @@ def display_cards(cards, dealers = false)
   puts
 
   cards.each { print "  -----  " }
+  unless hide_last
+    print "  Total: #{total(cards)}"
+  end
   puts
   puts
 
@@ -97,6 +97,17 @@ def total(cards)
 end
 
 
+def display(pcards, dcards, game_over_msg = "" )
+  system "cls"
+  display_cards(dcards, "My Cards", game_over_msg.empty?)
+  display_cards(pcards)
+  unless game_over_msg.empty?
+    puts game_over_msg
+    puts "### GAME OVER ###\n\n"
+  end
+end
+
+
 # pseudo code
 # ask user to enter name
 
@@ -123,16 +134,18 @@ end
       # announce dealer as the winner & end game
     # end
 
-    # loop
-      # ask player to choose to hit or stay
+    # ask player to choose to hit or stay
+    # while player chooses to hit
       # deal one card to player
       # add & show player card/s, update player total
       # if player has a blackjack
         # announce player as winner & end game
       # else if player total > 21
         # announce player as loser & end game
+      # else
+        # ask player to choose to hit or stay
       # end
-    # end while player chooses to hit
+    # end
 
     # while dealer total < 17
       # dealer deals one card to self
@@ -159,10 +172,12 @@ end
 
 
 # main
-player = prompt_user("Welcome to the BlackJack table.\nPlease enter your name", "Anon")
-new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<anything else>]").downcase[0] == 'y'? true : false
+player = prompt_user("Welcome to the BlackJack table.\nPlease enter your name", "Alex")
 
-while new_game
+new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<anything else>]").downcase[0]
+
+while new_game == 'y'
+
   number_of_decks = "gibberish"
   until [1, 2, 4, 6, 8].index(number_of_decks)
     number_of_decks = prompt_user("Enter the number of decks you would prefer to play with [1, 2, 4, 6, 8]", "1").to_i
@@ -172,23 +187,63 @@ while new_game
   player_cards = []
   dealer_cards = []
 
-  system "cls"
+  # initial dealing
   2.times { player_cards << deal_one_card(card_set) }
-  display_cards(player_cards)
-
   2.times { dealer_cards << deal_one_card(card_set) }
-  display_cards(dealer_cards, true)
 
-  puts "Player total = %2d" % total(player_cards)
+  display(player_cards, dealer_cards)
 
+  # if player gets a blackjack after the initial dealing
   if total(player_cards) == 21
+    display(player_cards, dealer_cards, "You got a BlackJack! You win!!")
+  else
+    game_over = false
+    hit = prompt_user("Would you like to hit or stay? [h/s]", "h").downcase[0]
+    while hit == 'h'
+      player_cards << deal_one_card(card_set)
+      display(player_cards, dealer_cards)
+      if total(player_cards) > 21
+        hit = "s"
+        game_over = true
+        display(player_cards, dealer_cards, "You are busted. I win!")
+      elsif total(player_cards) == 21
+        hit = "s"
+        game_over = true
+        display(player_cards, dealer_cards, "You got a BlackJack! You win!!")
+      else
+        hit = prompt_user("Would you like to hit or stay? [h/s]", "h").downcase[0]
+      end
+    end
 
-    new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<any other response>]").downcase[0] == 'y'? true : false
+    unless game_over
+      while total(dealer_cards) < 17
+        dealer_cards << deal_one_card(card_set)
+        display(player_cards, dealer_cards)
+        if total(dealer_cards) > 21
+          game_over = true
+          display(player_cards, dealer_cards, "I am busted. You win!")
+        elsif total(dealer_cards) == 21
+          game_over = true
+          display(player_cards, dealer_cards, "I got a BlackJack!! I win!!!")
+        end
+      end
+    end
+
+    unless game_over
+      if total(player_cards) > total(dealer_cards)
+        game_over = true
+        display(player_cards, dealer_cards, "I lose. You win!")
+      elsif total(player_cards) == total(dealer_cards)
+        game_over = true
+        display(player_cards, dealer_cards, "Game pushed! Nobody loses!!")
+      else
+        game_over = true
+        display(player_cards, dealer_cards, "I win! You lose!!")
+      end
+    end
 
   end
 
-  new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<any other response>]").downcase[0] == 'y'? true : false
+  new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<any other response>]").downcase[0]
+
 end
-
-
-
