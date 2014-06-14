@@ -77,13 +77,11 @@ end
 
 
 def initialize_cards(deck_count)
+  puts "Shuffling the cards..."
+  sleep 0.5
   # Spade "\u2660", Heart "\u2665", Club "\u2663", Diamond"\u2666"
-  card_set = ["\u2660", "\u2665", "\u2663", "\u2666"].product(["a", Array(2..10), "j", "q", "k"].flatten) * deck_count
-end
-
-
-def deal_one_card(cards)
-  cards.delete_at(rand(cards.length))
+  decks = ["\u2660", "\u2665", "\u2663", "\u2666"].product(["a", Array(2..10), "j", "q", "k"].flatten) * deck_count
+  decks.shuffle!
 end
 
 
@@ -149,6 +147,17 @@ def total(cards)
 end
 
 
+def get_bet_result(bet, result='won')
+  if result == 'won'
+    bet*0.5
+  elsif result == 'lost'
+    -bet
+  else
+    0.0
+  end
+end
+
+
 def display(pcards, dcards, game_over_msg = "" )
   system "cls"
   display_cards(dcards, "My Cards", game_over_msg.empty?)
@@ -163,67 +172,96 @@ end
 # main
 player = prompt_user("Welcome to the BlackJack table.\nYour name please", "Alex")
 
-new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<anything else>]").downcase[0]
+number_of_decks = "gibberish"
+until [1, 2, 4, 6, 8].index(number_of_decks)
+  number_of_decks = prompt_user("Enter the number of decks you would like to play with [1, 2, 4, 6, 8]", "4").to_i
+end
 
-while new_game == 'y'
+chips = prompt_user("How many chips would you like to buy #{player}?", "100").to_f
 
-  number_of_decks = "gibberish"
-  until [1, 2, 4, 6, 8].index(number_of_decks)
-    number_of_decks = prompt_user("Enter the number of decks you would prefer to play with [1, 2, 4, 6, 8]", "4").to_i
+while chips > 0
+
+  new_game = prompt_user("Hi #{player}, are you ready to start a new game? [y/<anything else>]").downcase[0]
+  unless new_game == 'y'
+    break
+  end
+  system "cls"
+
+  puts "You have #{chips} chips remaining"
+
+  decks = initialize_cards(number_of_decks)
+
+  default_bet = '20'
+  while true
+    bet = prompt_user("Place your bet #{player}", default_bet).to_f
+    if bet <= chips
+      break
+    else
+      puts "You have only #{chips} chips remaining"
+      default_bet = "#{chips}"
+    end
   end
 
-  card_set = initialize_cards(number_of_decks)
   player_cards = []
   dealer_cards = []
 
   # initial dealing
-  2.times { player_cards << deal_one_card(card_set) }
-  2.times { dealer_cards << deal_one_card(card_set) }
+  2.times do
+    player_cards << decks.pop
+    dealer_cards << decks.pop
+  end
 
   display(player_cards, dealer_cards)
 
   # if player gets a blackjack after the initial dealing
   if total(player_cards) == 21
-    display(player_cards, dealer_cards, "You hit a BlackJack! You win #{player}!!")
     if total(dealer_cards) == 21
       display(player_cards, dealer_cards, "Game pushes")
+    else
+      display(player_cards, dealer_cards, "You hit a BlackJack! You win #{player}!!")
+      chips += get_bet_result(bet)
     end
   else
     game_over = false
 
     # player's turn
-    hit = prompt_user("Would you like to hit or stay, #{player}? [h/s]", "h").downcase[0]
-    while hit == 'h'
-      player_cards << deal_one_card(card_set)
+    while true
+      hit = prompt_user("Would you like to hit or stay, #{player}? [h/s]", "h").downcase[0]
+      unless hit == 'h'
+        break
+      end
+      player_cards << decks.pop
       display(player_cards, dealer_cards)
       if total(player_cards) > 21
-        hit = "s"
-        game_over = true
         display(player_cards, dealer_cards, "You have busted. I win!")
-      elsif total(player_cards) == 21
-        hit = "s"
+        chips += get_bet_result(bet, 'lost')
         game_over = true
+        break
+      elsif total(player_cards) == 21
         if total(dealer_cards) == 21
           display(player_cards, dealer_cards, "Game pushes")
         else
           display(player_cards, dealer_cards, "You hit a BlackJack! You win #{player}!!")
+          chips += get_bet_result(bet)
         end
-      else
-        hit = prompt_user("Would you like to hit or stay, #{player}? [h/s]", "h").downcase[0]
+        game_over = true
+        break
       end
     end
 
     # dealer's turn
     unless game_over
       while total(dealer_cards) < 17
-        dealer_cards << deal_one_card(card_set)
+        dealer_cards << decks.pop
         display(player_cards, dealer_cards)
         if total(dealer_cards) > 21
-          game_over = true
           display(player_cards, dealer_cards, "I have busted. You win #{player}!")
-        elsif total(dealer_cards) == 21
+          chips += get_bet_result(bet)
           game_over = true
+        elsif total(dealer_cards) == 21
           display(player_cards, dealer_cards, "I hit a BlackJack!! I win!!!")
+          chips += get_bet_result(bet, 'lost')
+          game_over = true
         end
       end
     end
@@ -231,19 +269,23 @@ while new_game == 'y'
     # if no winner / loser yet
     unless game_over
       if total(player_cards) > total(dealer_cards)
-        game_over = true
         display(player_cards, dealer_cards, "I lose. You win #{player}!")
+        chips += get_bet_result(bet)
       elsif total(player_cards) == total(dealer_cards)
-        game_over = true
         display(player_cards, dealer_cards, "Game pushed! Nobody loses!!")
       else
-        game_over = true
         display(player_cards, dealer_cards, "I win! You lose #{player}!!")
+        chips += get_bet_result(bet, 'lost')
       end
     end
 
   end
 
-  new_game = prompt_user("Enter 'y' when you are ready to start a new game, #{player}? [y/<any other response>]").downcase[0]
-
 end
+
+if chips == 0
+  puts "Sorry, you have run out of chips!"
+end
+puts "Great having you here #{player}...\nSee you soon!"
+
+gets.chomp
