@@ -149,11 +149,11 @@ end
 
 def get_bet_result(bet, result='won')
   if result == 'won'
-    bet*0.5
+    bet/2
   elsif result == 'lost'
     -bet
   else
-    0.0
+    0
   end
 end
 
@@ -177,7 +177,7 @@ until [1, 2, 4, 6, 8].index(number_of_decks)
   number_of_decks = prompt_user("Enter the number of decks you would like to play with [1, 2, 4, 6, 8]", "4").to_i
 end
 
-chips = prompt_user("How many chips would you like to buy #{player}?", "100").to_f
+chips = prompt_user("How many chips would you like to buy #{player}?", "100").to_i
 
 while chips > 0
 
@@ -193,7 +193,7 @@ while chips > 0
 
   default_bet = '20'
   while true
-    bet = prompt_user("Place your bet #{player}", default_bet).to_f
+    bet = prompt_user("Place your bet #{player}", default_bet).to_i
     if bet <= chips
       break
     else
@@ -288,4 +288,3 @@ if chips == 0
 end
 puts "Great having you here #{player}...\nSee you soon!"
 
-gets.chomp
