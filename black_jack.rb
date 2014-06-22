@@ -169,6 +169,12 @@ def display(pcards, dcards, game_over_msg = "" )
 end
 
 
+def read_char
+  require "Win32API"
+  Win32API.new("crtdll", "_getch", [], "L").Call
+end
+
+
 # main
 player = prompt_user("Welcome to the BlackJack table.\nYour name please", "Alex")
 
@@ -288,3 +294,5 @@ if chips == 0
 end
 puts "Great having you here #{player}...\nSee you soon!"
 
+print "Press a key to exit..."
+read_char
