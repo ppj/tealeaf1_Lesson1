@@ -208,23 +208,23 @@ while chips > 0
     end
   end
 
-  player_cards = []
-  dealer_cards = []
+  player_hand = []
+  dealer_hand = []
 
   # initial dealing
   2.times do
-    player_cards << decks.pop
-    dealer_cards << decks.pop
+    player_hand << decks.pop
+    dealer_hand << decks.pop
   end
 
-  display(player_cards, dealer_cards)
+  display(player_hand, dealer_hand)
 
   # if player gets a blackjack after the initial dealing
-  if total(player_cards) == 21
-    if total(dealer_cards) == 21
-      display(player_cards, dealer_cards, "Game pushes")
+  if total(player_hand) == 21
+    if total(dealer_hand) == 21
+      display(player_hand, dealer_hand, "Game pushes")
     else
-      display(player_cards, dealer_cards, "You hit a BlackJack! You win #{player}!!")
+      display(player_hand, dealer_hand, "You hit a BlackJack! You win #{player}!!")
       chips += get_bet_result(bet)
     end
   else
@@ -236,18 +236,18 @@ while chips > 0
       unless hit == 'h'
         break
       end
-      player_cards << decks.pop
-      display(player_cards, dealer_cards)
-      if total(player_cards) > 21
-        display(player_cards, dealer_cards, "You have busted. I win!")
+      player_hand << decks.pop
+      display(player_hand, dealer_hand)
+      if total(player_hand) > 21
+        display(player_hand, dealer_hand, "You have busted. I win!")
         chips += get_bet_result(bet, 'lost')
         game_over = true
         break
-      elsif total(player_cards) == 21
-        if total(dealer_cards) == 21
-          display(player_cards, dealer_cards, "Game pushes")
+      elsif total(player_hand) == 21
+        if total(dealer_hand) == 21
+          display(player_hand, dealer_hand, "Game pushes")
         else
-          display(player_cards, dealer_cards, "You hit a BlackJack! You win #{player}!!")
+          display(player_hand, dealer_hand, "You hit a BlackJack! You win #{player}!!")
           chips += get_bet_result(bet)
         end
         game_over = true
@@ -257,15 +257,15 @@ while chips > 0
 
     # dealer's turn
     unless game_over
-      while total(dealer_cards) < 17
-        dealer_cards << decks.pop
-        display(player_cards, dealer_cards)
-        if total(dealer_cards) > 21
-          display(player_cards, dealer_cards, "I have busted. You win #{player}!")
+      while total(dealer_hand) < 17
+        dealer_hand << decks.pop
+        display(player_hand, dealer_hand)
+        if total(dealer_hand) > 21
+          display(player_hand, dealer_hand, "I have busted. You win #{player}!")
           chips += get_bet_result(bet)
           game_over = true
-        elsif total(dealer_cards) == 21
-          display(player_cards, dealer_cards, "I hit a BlackJack!! I win!!!")
+        elsif total(dealer_hand) == 21
+          display(player_hand, dealer_hand, "I hit a BlackJack!! I win!!!")
           chips += get_bet_result(bet, 'lost')
           game_over = true
         end
@@ -274,13 +274,13 @@ while chips > 0
 
     # if no winner / loser yet
     unless game_over
-      if total(player_cards) > total(dealer_cards)
-        display(player_cards, dealer_cards, "I lose. You win #{player}!")
+      if total(player_hand) > total(dealer_hand)
+        display(player_hand, dealer_hand, "I lose. You win #{player}!")
         chips += get_bet_result(bet)
-      elsif total(player_cards) == total(dealer_cards)
-        display(player_cards, dealer_cards, "Game pushed! Nobody loses!!")
+      elsif total(player_hand) == total(dealer_hand)
+        display(player_hand, dealer_hand, "Game pushed! Nobody loses!!")
       else
-        display(player_cards, dealer_cards, "I win! You lose #{player}!!")
+        display(player_hand, dealer_hand, "I win! You lose #{player}!!")
         chips += get_bet_result(bet, 'lost')
       end
     end
